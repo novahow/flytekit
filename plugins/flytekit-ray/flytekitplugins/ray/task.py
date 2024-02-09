@@ -36,6 +36,7 @@ class RayJobConfig:
     head_node_config: typing.Optional[HeadNodeConfig] = None
     runtime_env: typing.Optional[dict] = None
     address: typing.Optional[str] = None
+    submitter_service_account: typing.Optional[str] = None
 
 
 class RayFunctionTask(PythonFunctionTask):
@@ -66,10 +67,11 @@ class RayFunctionTask(PythonFunctionTask):
                 worker_group_spec=[
                     WorkerGroupSpec(c.group_name, c.replicas, c.min_replicas, c.max_replicas, c.ray_start_params)
                     for c in cfg.worker_node_config
-                ],
+                ]
             ),
             # Use base64 to encode runtime_env dict and convert it to byte string
             runtime_env=base64.b64encode(json.dumps(cfg.runtime_env).encode()).decode(),
+            submitter_service_account=cfg.submitter_service_account,            
         )
         return MessageToDict(ray_job.to_flyte_idl())
 

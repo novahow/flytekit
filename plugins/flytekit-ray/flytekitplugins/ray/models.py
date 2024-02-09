@@ -127,7 +127,9 @@ class RayCluster(_common.FlyteIdlEntity):
     """
 
     def __init__(
-        self, worker_group_spec: typing.List[WorkerGroupSpec], head_group_spec: typing.Optional[HeadGroupSpec] = None
+        self, 
+        worker_group_spec: typing.List[WorkerGroupSpec],
+        head_group_spec: typing.Optional[HeadGroupSpec] = None,
     ):
         self._head_group_spec = head_group_spec
         self._worker_group_spec = worker_group_spec
@@ -178,9 +180,11 @@ class RayJob(_common.FlyteIdlEntity):
         self,
         ray_cluster: RayCluster,
         runtime_env: typing.Optional[str],
+        submitter_service_account: typing.Optional[str] = None,
     ):
         self._ray_cluster = ray_cluster
         self._runtime_env = runtime_env
+        self._submitter_service_account = submitter_service_account
 
     @property
     def ray_cluster(self) -> RayCluster:
@@ -190,10 +194,20 @@ class RayJob(_common.FlyteIdlEntity):
     def runtime_env(self) -> typing.Optional[str]:
         return self._runtime_env
 
+    @property
+    def submitter_service_account(self) -> str:
+        """
+        The service account that submits the Ray job.
+        :rtype: str
+        """
+        return self._submitter_service_account
+
     def to_flyte_idl(self) -> _ray_pb2.RayJob:
         return _ray_pb2.RayJob(
             ray_cluster=self.ray_cluster.to_flyte_idl(),
             runtime_env=self.runtime_env,
+            submitter_pod_service_account_name=self.submitter_service_account\
+                if self.submitter_service_account is not None else None,
         )
 
     @classmethod
@@ -201,4 +215,5 @@ class RayJob(_common.FlyteIdlEntity):
         return cls(
             ray_cluster=RayCluster.from_flyte_idl(proto.ray_cluster) if proto.ray_cluster else None,
             runtime_env=proto.runtime_env,
+            submitter_service_account=proto.submitter_pod_service_account_name,
         )
