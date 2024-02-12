@@ -1,5 +1,6 @@
 import base64
 import json
+import pytest
 
 import ray
 from flytekitplugins.ray.models import RayCluster, RayJob, WorkerGroupSpec
@@ -9,13 +10,15 @@ from google.protobuf.json_format import MessageToDict
 from flytekit import PythonFunctionTask, task
 from flytekit.configuration import Image, ImageConfig, SerializationSettings
 
-config = RayJobConfig(
-    worker_node_config=[WorkerNodeConfig(group_name="test_group", replicas=3)],
-    runtime_env={"pip": ["numpy"]},
-)
 
 
-def test_ray_task():
+@pytest.mark.parametrize("submitter_service_account", [None, "test_service_account"])
+def test_ray_task(submitter_service_account):
+    config = RayJobConfig(
+        worker_node_config=[WorkerNodeConfig(group_name="test_group", replicas=3)],
+        runtime_env={"pip": ["numpy"]},
+        submitter_service_account=submitter_service_account,
+    )
     @task(task_config=config)
     def t1(a: int) -> str:
         assert ray.is_initialized()
@@ -39,6 +42,7 @@ def test_ray_task():
     ray_job_pb = RayJob(
         ray_cluster=RayCluster(worker_group_spec=[WorkerGroupSpec("test_group", 3)]),
         runtime_env=base64.b64encode(json.dumps({"pip": ["numpy"]}).encode()).decode(),
+        submitter_service_account=submitter_service_account,
     ).to_flyte_idl()
 
     assert t1.get_custom(settings) == MessageToDict(ray_job_pb)
