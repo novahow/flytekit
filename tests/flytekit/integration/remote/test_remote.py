@@ -211,7 +211,7 @@ def test_fetch_execute_task(register):
 
 def test_execute_python_task(register):
     """Test execution of a @task-decorated python function that is already registered."""
-    from workflows.basic.basic_workflow import t1
+    from .workflows.basic.basic_workflow import t1
 
     remote = FlyteRemote(Config.auto(config_file=CONFIG), PROJECT, DOMAIN)
     execution = remote.execute(
@@ -234,7 +234,7 @@ def test_execute_python_task(register):
 
 def test_execute_python_workflow_and_launch_plan(register):
     """Test execution of a @workflow-decorated python function and launchplan that are already registered."""
-    from workflows.basic.basic_workflow import my_wf
+    from .workflows.basic.basic_workflow import my_wf
 
     remote = FlyteRemote(Config.auto(config_file=CONFIG), PROJECT, DOMAIN)
     execution = remote.execute(
@@ -288,7 +288,7 @@ def test_fetch_execute_task_convert_dict(register):
 
 def test_execute_python_workflow_dict_of_string_to_string(register):
     """Test execution of a @workflow-decorated python function and launchplan that are already registered."""
-    from workflows.basic.dict_str_wf import my_wf
+    from .workflows.basic.dict_str_wf import my_wf
 
     remote = FlyteRemote(Config.auto(config_file=CONFIG), PROJECT, DOMAIN)
     d: typing.Dict[str, str] = {"k1": "v1", "k2": "v2"}
@@ -314,7 +314,7 @@ def test_execute_python_workflow_dict_of_string_to_string(register):
 
 def test_execute_python_workflow_list_of_floats(register):
     """Test execution of a @workflow-decorated python function and launchplan that are already registered."""
-    from workflows.basic.list_float_wf import my_wf
+    from .workflows.basic.list_float_wf import my_wf
 
     remote = FlyteRemote(Config.auto(config_file=CONFIG), PROJECT, DOMAIN)
 
@@ -381,7 +381,7 @@ def test_execute_joblib_workflow(register):
 
 
 def test_execute_with_default_launch_plan(register):
-    from workflows.basic.subworkflows import parent_wf
+    from .workflows.basic.subworkflows import parent_wf
 
     remote = FlyteRemote(Config.auto(config_file=CONFIG), PROJECT, DOMAIN)
     execution = remote.execute(parent_wf, inputs={"a": 101}, version=VERSION, wait=True, image_config=ImageConfig.auto(img_name=IMAGE))
@@ -589,14 +589,14 @@ class TestLargeFileTransfers:
 
 
 def test_register_wf_fast(register):
-    from workflows.basic.subworkflows import parent_wf
+    from .workflows.basic.subworkflows import parent_wf
 
     remote = FlyteRemote(Config.auto(config_file=CONFIG), PROJECT, DOMAIN)
     fast_version = f"{VERSION}_fast"
     serialization_settings = SerializationSettings(image_config=ImageConfig.auto(img_name=IMAGE))
     registered_wf = remote.fast_register_workflow(parent_wf, serialization_settings, version=fast_version)
     execution = remote.execute(registered_wf, inputs={"a": 101}, wait=True)
-    assert registered_wf.name == "workflows.basic.subworkflows.parent_wf"
+    assert registered_wf.name == "tests.flytekit.integration.remote.workflows.basic.subworkflows.parent_wf"
     assert execution.spec.launch_plan.version == fast_version
     # check node execution inputs and outputs
     assert execution.node_executions["n0"].inputs == {"a": 101}
